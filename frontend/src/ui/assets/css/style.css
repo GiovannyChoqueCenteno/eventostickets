@@ -1,0 +1,12 @@
+body {
+    background-color: #D9D8DA;
+    color:white;
+}
+
+.icon-menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    color:black;
+    cursor: pointer;
+}
