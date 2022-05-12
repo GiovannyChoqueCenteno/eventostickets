@@ -8,32 +8,32 @@ import { BTN_PRIMARY, CARD } from '../../../const/theme';
 import { DataSource } from '../../../../redux/interface/evento';
 import { ErrorMap, ImagePartial } from './interface/interface';
 import { schemaEvento } from './validacion/schemaEvento';
-import { setTimeout } from 'timers/promises';
 import { actionEvento } from '../../../../redux/slice/eventoSlice';
-
+import { useLoadCategoria } from '../../../../hook/useLoadCategoria';
 interface Props {
     setstep: Dispatch<SetStateAction<number>>;
 }
-const categorias = [
-    {
-        id: 1,
-        nombre: "c1"
-    },
-    {
-        id: 2,
-        nombre: "c2"
-    },
-    {
-        id: 3,
-        nombre: "c3"
-    }
-]
+// const categorias = [
+//     {
+//         id: 1,
+//         nombre: "c1"
+//     },
+//     {
+//         id: 2,
+//         nombre: "c2"
+//     },
+//     {
+//         id: 3,
+//         nombre: "c3"
+//     }
+// ]
 
 const EventoCreate = (props: Props) => {
 
     const { setstep } = props;
     const dispatch = useAppDispatch();
     const evento = useAppSelector((s) => s.evento);
+    const { categoria, loading } = useLoadCategoria();
     const [dataSource, setdataSource] = useState<DataSource[]>(evento.images);
     const [countImage, setcountImage] = useState<number>(0);
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
@@ -93,7 +93,7 @@ const EventoCreate = (props: Props) => {
         }
         validarCampos();
         schemaEvento.validate(value).then(() => {
-            if(dataSource.length > 0){
+            if (dataSource.length > 0) {
                 dispatch(actionEvento.addEvento(payload));
                 setstep((next) => next + 1);
             }
@@ -101,8 +101,8 @@ const EventoCreate = (props: Props) => {
     }
 
     useEffect(() => {
-        categorias.length > 0 && setField('categoria', categorias[0].id);
-    }, [categorias])
+        categoria.length > 0 && setField('categoria', categoria[0].id);
+    }, [categoria])
 
     return (
         <Container style={{ backgroundColor: CARD }}>
@@ -128,7 +128,8 @@ const EventoCreate = (props: Props) => {
                         value={value.categoria}
                     >
                         {
-                            categorias.map((c) => (
+                            (!loading) &&
+                            categoria.map((c) => (
                                 <option
                                     key={c.id}
                                     value={c.id}>{c.nombre}

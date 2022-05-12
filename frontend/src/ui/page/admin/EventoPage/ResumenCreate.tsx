@@ -5,6 +5,7 @@ import { BTN_RED, CARD, BTN_PRIMARY } from '../../../const/theme'
 import { useAppDispatch, useAppSelector } from '../../../../redux/store/config';
 import { actionEvento } from '../../../../redux/slice/eventoSlice';
 import { useNavigate } from 'react-router-dom';
+import { eventoCreate } from '../../../../redux/middleware/evento';
 
 const ResumenCreate = () => {
     const evento = useAppSelector((s) => s.evento);
@@ -12,7 +13,13 @@ const ResumenCreate = () => {
     const navigate = useNavigate();
 
     const create = () => {
-        console.log("crear");
+        const args = {
+            titulo: evento.nombre,
+            descripcion: evento.descripcion,
+            categoriaId: evento.categoria,
+            estadoId: 2
+        };
+        dispatch(eventoCreate(args));
         navigate('/main/admin');
     }
 

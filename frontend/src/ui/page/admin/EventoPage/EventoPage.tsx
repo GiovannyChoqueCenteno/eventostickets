@@ -9,7 +9,7 @@ import RenderStep from './RenderStep';
 
 const EventoPage = () => {
 
-  const [step, setstep] = useState<number>(5);
+  const [step, setstep] = useState<number>(0);
 
   return (
 
