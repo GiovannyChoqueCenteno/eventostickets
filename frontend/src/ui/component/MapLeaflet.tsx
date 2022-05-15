@@ -15,7 +15,7 @@ const MapLeaflet = (props: Props) => {
 
     return (
         <Container className={'rounded'}>
-            
+
             {/* UAGRM DIRECCION  */}
 
             <MapContainer

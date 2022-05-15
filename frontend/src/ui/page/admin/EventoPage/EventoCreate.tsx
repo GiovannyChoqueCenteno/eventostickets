@@ -10,39 +10,24 @@ import { ErrorMap, ImagePartial } from './interface/interface';
 import { schemaEvento } from './validacion/schemaEvento';
 import { actionEvento } from '../../../../redux/slice/eventoSlice';
 import { useLoadCategoria } from '../../../../hook/useLoadCategoria';
+import { eventoCreate, imageUpload } from '../../../../redux/middleware/evento';
 interface Props {
     setstep: Dispatch<SetStateAction<number>>;
 }
-// const categorias = [
-//     {
-//         id: 1,
-//         nombre: "c1"
-//     },
-//     {
-//         id: 2,
-//         nombre: "c2"
-//     },
-//     {
-//         id: 3,
-//         nombre: "c3"
-//     }
-// ]
-
 const EventoCreate = (props: Props) => {
 
     const { setstep } = props;
     const dispatch = useAppDispatch();
-    const evento = useAppSelector((s) => s.evento);
     const { categoria, loading } = useLoadCategoria();
-    const [dataSource, setdataSource] = useState<DataSource[]>(evento.images);
+    const [dataSource, setdataSource] = useState<DataSource[]>([] as DataSource[]);
     const [countImage, setcountImage] = useState<number>(0);
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
 
     const { value, onChange, onChangeSelect, setField } = useForm({
-        nombre: evento.nombre,
-        descripcion: evento.descripcion,
-        organizador: evento.organizador,
-        categoria: evento.categoria,
+        titulo: "",
+        descripcion: "",
+        organizador: "",
+        categoriaId: 1,
     });
 
     const Onchange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -66,9 +51,9 @@ const EventoCreate = (props: Props) => {
 
     const onUpload = (data: ImagePartial[]) => {
         let idImage = countImage;
-        let images = data.map((file) => {
+        let images = data.map((image) => {
             idImage++;
-            return { id: idImage, dataURL: file.dataURL }
+            return { id: idImage, dataURL: image.dataURL, file: image.file }
         });
         setcountImage(idImage);
         setdataSource((d) => [...d, ...images]);
@@ -86,22 +71,19 @@ const EventoCreate = (props: Props) => {
         validarCampos();
     };
 
-    const saveStore = () => {
-        const payload = {
-            ...value,
-            images: dataSource
-        }
+    const save = () => {
         validarCampos();
-        schemaEvento.validate(value).then(() => {
+        schemaEvento.validate(value).then(async () => {
             if (dataSource.length > 0) {
-                dispatch(actionEvento.addEvento(payload));
+                await dispatch(eventoCreate(value));
+                await dispatch(imageUpload({ images: dataSource }));
                 setstep((next) => next + 1);
             }
         });
     }
 
     useEffect(() => {
-        categoria.length > 0 && setField('categoria', categoria[0].id);
+        categoria.length > 0 && setField('categoriaId', categoria[0].id);
     }, [categoria])
 
     return (
@@ -109,23 +91,23 @@ const EventoCreate = (props: Props) => {
             <h5 className='text-muted'>Crear Evento</h5>
             <Form className='row text-muted'>
                 <Form.Group className={'col-md-6'}>
-                    <Form.Label><small>Nombre</small></Form.Label>
+                    <Form.Label><small>Titulo</small></Form.Label>
                     <Form.Control
                         type={'text'}
                         placeholder={'ed...'}
-                        name={'nombre'}
-                        value={value.nombre}
+                        name={'titulo'}
+                        value={value.titulo}
                         onChange={(e) => Onchange(e as React.FormEvent<HTMLInputElement>)}
                         autoComplete="off"
                     />
-                    <Form.Text className="text-danger">{errors.name === "nombre" && errors.error}</Form.Text>
+                    <Form.Text className="text-danger">{errors.name === "titulo" && errors.error}</Form.Text>
                 </Form.Group>
                 <Form.Group className={'col-md-6'}>
                     <Form.Label><small>Categoria</small></Form.Label>
                     <Form.Select
-                        name={'categoria'}
-                        onChange={(e) => onChangeSelect(e as React.FormEvent<HTMLSelectElement>, 'categoria')}
-                        value={value.categoria}
+                        name={'categoriaId'}
+                        onChange={(e) => onChangeSelect(e as React.FormEvent<HTMLSelectElement>, 'categoriaId')}
+                        value={value.categoriaId}
                     >
                         {
                             (!loading) &&
@@ -177,7 +159,7 @@ const EventoCreate = (props: Props) => {
                 </Form.Group>
 
                 <Form.Group className={'col-md-6 my-3'}>
-                    <Button onClick={saveStore} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
+                    <Button onClick={save} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
                 </Form.Group>
 
             </Form>

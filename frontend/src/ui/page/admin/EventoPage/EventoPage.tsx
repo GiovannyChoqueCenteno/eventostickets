@@ -13,9 +13,8 @@ const EventoPage = () => {
 
   return (
 
-    
     <Container className={'mt-4 text-dark pb-5'}>
-      <h4 className=''>Listado Eventos</h4>
+      <h4>Eventos</h4>
       <hr />
 
       <Container className={'rounded shadow p-2'} style={{ backgroundColor: CARD }}>

@@ -4,12 +4,11 @@ import React, { Dispatch, SetStateAction, useState } from 'react'
 import { Button, Container, Form, Table } from 'react-bootstrap'
 
 import useForm from '../../../../hook/useForm';
-import { Lugar } from '../../../../redux/interface/evento';
-import { actionEvento } from '../../../../redux/slice/eventoSlice';
 import { useAppDispatch, useAppSelector } from '../../../../redux/store/config';
 import { BTN_PRIMARY, BTN_RED, CARD } from '../../../const/theme'
-import { ErrorMap } from './interface/interface';
+import { ErrorMap, Espacio } from './interface/interface';
 import { schemaEspacio } from './validacion/schemaEspacio';
+import { createEspacio } from '../../../../redux/middleware/evento';
 
 interface Props {
     setstep: Dispatch<SetStateAction<number>>;
@@ -18,16 +17,28 @@ interface Props {
 const EspacioCreate = (props: Props) => {
 
     const { setstep } = props;
-    const evento = useAppSelector((s) => s.evento);
     const dispatch = useAppDispatch();
+    const { lugar } = useAppSelector((s) => s.evento);
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
-    const { value, onChange, onChangeSelect, reset } = useForm({
+    const [espacio, setespacio] = useState<Espacio[]>([] as Espacio[]);
+    const { value, onChange, reset, setData } = useForm<Espacio>({
         nombre: "",
-        sector: `${evento.lugar[0].nombre},${evento.lugar[0].sector[0].nombre}`,
         descripcion: "",
         capacidad: 0,
-        cantidad: 0
+        cantidad: 0,
+        lugar: lugar[0].nombre,
+        sector: lugar[0].sector[0].nombre,
+        id_sector: lugar[0].sector[0].id,
     });
+
+    const OnSelectSector = (value: string) => {
+        let lugarSectorIdSector = value.split(',');
+        setData({
+            lugar: lugarSectorIdSector[0],
+            sector: lugarSectorIdSector[1],
+            id_sector: lugarSectorIdSector[2]
+        })
+    }
 
     const Onchange = (e: React.FormEvent<HTMLInputElement>) => {
         validarCampos();
@@ -41,82 +52,76 @@ const EspacioCreate = (props: Props) => {
         });
         schemaEspacio.validate(value).catch((err) => {
             seterrors({
-                ...errors,
                 name: err.path,
                 error: err.errors[0],
             });
         });
     }
 
-    const agregarEspacio = () => {
-        let lugarSector = value.sector.split(",");
-        let lugar = lugarSector[0]; //obtiene el lugar
-        let sector = lugarSector[1]; //obtiene el sector
-        let payload = { ...value, sector, lugar };
+    const agregar = () => {
         validarCampos();
         schemaEspacio.validate(value).then(() => {
             if (validarCapacidadSector()) {
-                dispatch(actionEvento.addEspacio(payload))
+                setespacio((e) => [...e, value]);
                 reset();
             }
         });
     }
 
+    const eliminar = (nombre_lugar: string, nombre_sector: string, nombre_espacio: string) => {
+        let keyDelete = `${nombre_lugar}${nombre_sector}${nombre_espacio}`;
+        let espacioFilter = espacio.filter((esp) => {
+            let key = `${esp.lugar}${esp.sector}${esp.nombre}`;
+            if (key !== keyDelete) return true;
+        });
+        setespacio(espacioFilter);
+    }
+
     const validarCapacidadSector = (): boolean => {
-        let LugarSector = value.sector.split(",");
-        let lugarNombre = LugarSector[0];
-        let sectorNombre = LugarSector[1]
         let isValidEspacio = true;
-        evento.lugar.find((lugar) => {
-            if (lugar.nombre === lugarNombre) {
+
+        lugar.find((lugar) => {
+            if (lugar.nombre === value.lugar) {
                 lugar.sector.find((sector) => {
-                    if (sector.nombre === sectorNombre) {
-                        let sectorCapacidad = sector.capacidad;
-                        sector.espacio.forEach((espacio) => {
-                            sectorCapacidad = sectorCapacidad - (espacio.cantidad * espacio.capacidad)
+                    if (sector.nombre === value.sector) {
+                        let capacidadSector = sector.capacidad;
+                        espacio.forEach((esp) => {
+                            let { capacidad, cantidad } = esp;
+                            if (esp.sector === value.sector)
+                                capacidadSector = capacidadSector - (cantidad * capacidad)
                         });
-                        sectorCapacidad = sectorCapacidad - (value.cantidad * value.capacidad);
-                        if (sectorCapacidad < 0) {
+                        capacidadSector = capacidadSector - (value.capacidad * value.cantidad);
+                        if (capacidadSector < 0) {
                             isValidEspacio = false;
                             seterrors({
-                                ...errors,
                                 name: "espacio",
-                                error: `No se puede agregar ese espacio ya , capacidad limite del ${lugar.nombre}/${sector.nombre} es ${sector.capacidad}`,
+                                error: `No se puede agregar esa capacidad, capacidad limite del sector ${lugar.nombre}/${sector.nombre} es ${sector.capacidad}`,
                             });
                         }
                         return true;//break
                     }
                 });
-                return true;//break
             }
         });
         return isValidEspacio;
     }
 
-    const eliminar = (lugar: string, sector: string, espacio: string) => {
-        dispatch(actionEvento.deleteEspacio({ lugar, sector, espacio }));
-    }
-
     const validarSectorWithEspacio = () => {
         let isValidSectorWithEspacio = true;
-        evento.lugar.find((lugar) => {
-            lugar.sector.find((sector) => {
-                if (sector.espacio.length === 0) {
-                    isValidSectorWithEspacio = false;
-                    seterrors({
-                        ...errors,
-                        name: "espacio",
-                        error: `debe agregar al menos un espacio a ${lugar.nombre}/${sector.nombre}`,
-                    });
-                    return true;//break
-                }
-            });
+        lugar.forEach((lugar) => {
+            lugar.sector.forEach((sector) => {
+                let res = espacio.find((esp) => esp.sector === sector.nombre);
+                if (res === undefined) isValidSectorWithEspacio = false;
+            })
         });
+        if (!isValidSectorWithEspacio)
+            seterrors({ name: "espacio", error: "todos los sectores debe tener al menos un espacio!!!" });
         return isValidSectorWithEspacio;
     }
 
-    const nextPage = () => {
+    const save = async () => {
         if (validarSectorWithEspacio()) {
+            await dispatch(createEspacio(espacio));
             setstep((next) => next + 1);
         }
     }
@@ -144,13 +149,13 @@ const EspacioCreate = (props: Props) => {
                     <Form.Label><small>Sector</small></Form.Label>
                     <Form.Select
                         name={'sector'}
-                        onChange={(e) => onChangeSelect(e as React.FormEvent<HTMLSelectElement>, 'sector')}
-                        value={value.sector}
+                        onChange={(e) => OnSelectSector(e.target.value)}
+                        value={`${value.lugar},${value.sector},${value.id_sector}`}
                     >
                         {
-                            evento.lugar.map((lugar) => {
+                            lugar.map((lugar) => {
                                 let html = lugar.sector.map((sector, index) => (
-                                    <option key={sector.nombre + index} value={`${lugar.nombre},${sector.nombre}`}>{`${lugar.nombre}/${sector.nombre}`}</option>
+                                    <option key={index} value={`${lugar.nombre},${sector.nombre},${sector.id}`}>{`${lugar.nombre}/${sector.nombre}`}</option>
                                 ));
                                 return html;
                             })
@@ -197,18 +202,18 @@ const EspacioCreate = (props: Props) => {
                 </Form.Group>
 
                 <Form.Group className={'col-md-6 my-3'}>
-                    <Button onClick={() => agregarEspacio()} variant={""} className={'text-white'} style={{ backgroundColor: BTN_PRIMARY }}>agregar</Button>
+                    <Button onClick={() => agregar()} variant={""} className={'text-white'} style={{ backgroundColor: BTN_PRIMARY }}>agregar</Button>
                 </Form.Group>
 
             </Form>
 
-            <ListSector eliminar={eliminar} lugares={evento.lugar} />
+            <ListSector eliminar={eliminar} espacio={espacio} />
 
             <p className={'my-4 text-center text-muted'}>
                 <small className="text-danger">{errors.name === "espacio" && errors.error}</small>
             </p>
 
-            <Button onClick={() => nextPage()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
+            <Button onClick={() => save()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
 
         </Container >
     )
@@ -216,14 +221,14 @@ const EspacioCreate = (props: Props) => {
 
 
 interface EspacioProps {
-    lugares: Lugar[];
-    eliminar: (lugar: string, sector: string, espacio: string) => void;
+    espacio: Espacio[];
+    eliminar: (nombre_lugar: string, nombre_sector: string, nombre_espacio: string) => void;
 }
 
 
 const ListSector = (props: EspacioProps) => {
 
-    const { lugares, eliminar } = props;
+    const { espacio, eliminar } = props;
 
     return (
         <Container>
@@ -237,28 +242,23 @@ const ListSector = (props: EspacioProps) => {
                         <th>eliminar</th>
                     </tr>
                 </thead>
-                <tbody className=''>
+                <tbody>
                     {
-                        (lugares.length > 0) &&
-                        lugares.map((lugar) => {
-                            let data = lugar.sector.map((sector) => {
-                                let espacios = sector.espacio.map((espacio, index) => (
-                                    <tr key={espacio.nombre + index} >
-                                        <td><small>{`${lugar.nombre}/${sector.nombre}`}</small></td>
-                                        <td>{espacio.nombre}</td>
-                                        <td>{espacio.cantidad}</td>
-                                        <td>{espacio.capacidad}</td>
-                                        <td>
-                                            <button onClick={() => eliminar(lugar.nombre, sector.nombre, espacio.nombre)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
-                                                <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                                return espacios;
-                            });
-                            return data;
-                        })
+                        espacio.length > 0 && (
+                            espacio.map((espacio, index) => (
+                                <tr key={index}>
+                                    <td><small>{`${espacio.lugar}/${espacio.sector}`}</small></td>
+                                    <td>{espacio.nombre}</td>
+                                    <td>{espacio.cantidad}</td>
+                                    <td>{espacio.capacidad}</td>
+                                    <td>
+                                        <button onClick={() => eliminar(espacio.lugar, espacio.sector, espacio.nombre)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
+                                            <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )
                     }
                 </tbody>
             </Table>

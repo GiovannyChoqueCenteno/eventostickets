@@ -3,12 +3,11 @@ import { Button, Container, Form, Table } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashAlt, } from '@fortawesome/free-solid-svg-icons';
 import useForm from '../../../../hook/useForm';
-import { Lugar } from '../../../../redux/interface/evento';
-import { actionEvento } from '../../../../redux/slice/eventoSlice';
 import { useAppDispatch, useAppSelector } from '../../../../redux/store/config';
 import { BTN_PRIMARY, BTN_RED, CARD } from '../../../const/theme'
-import { ErrorMap } from './interface/interface';
+import { ErrorMap, Sector } from './interface/interface';
 import { schemaSector } from './validacion/schemaSector';
+import { createSector } from '../../../../redux/middleware/evento';
 
 interface Props {
     setstep: Dispatch<SetStateAction<number>>;
@@ -17,51 +16,71 @@ interface Props {
 const SectorCreate = (props: Props) => {
 
     const { setstep } = props;
-    const evento = useAppSelector((s) => s.evento);
     const dispatch = useAppDispatch();
+    const { lugar } = useAppSelector((s) => s.evento);
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
-    const { value, onChange, onChangeSelect, reset } = useForm({
+    const [sector, setsector] = useState<Sector[]>([] as Sector[]);
+    const { value, onChange, setData, reset } = useForm<Sector>({
         nombre: "",
         capacidad: 0,
-        lugar: evento.lugar[0].nombre || ''
+        lugar: lugar[0].nombre,
+        id_lugar: lugar[0].id
     });
 
-    const agregar = () => {
-        validarCampos();
-        schemaSector.validate(value).then(() => {
-            if (validarCapacidadLugarSector()) {
-                dispatch(actionEvento.addSector(value));
-                reset();
-            }
+    const OnSelectLugar = (value: string) => {
+        let lugarAndId = value.split(',');
+        setData({
+            id_lugar: lugarAndId[0],
+            lugar: lugarAndId[1]
         });
-    }
-
-    const validarCapacidadLugarSector = (): boolean => {
-        let isValidCapacidad = true;
-        evento.lugar.find(lugar => {
-            if (value.lugar === lugar.nombre) {
-                let capacidadLugar = lugar.capacidad;
-                lugar.sector.forEach((sector) => {
-                    capacidadLugar = capacidadLugar - sector.capacidad;
-                })
-                capacidadLugar = capacidadLugar - value.capacidad;
-                if (capacidadLugar < 0) {
-                    isValidCapacidad = false;
-                    seterrors({
-                        ...errors,
-                        name: "sector",
-                        error: `No se puede agregar esa capacidad, capacidad limte del lugar ${lugar.nombre} es ${lugar.capacidad}`,
-                    });
-                    return true;//break
-                }
-            }
-        });
-        return isValidCapacidad;
     }
 
     const Onchange = (e: React.FormEvent<HTMLInputElement>) => {
         validarCampos();
         onChange(e);
+    }
+
+    const agregar = () => {
+        validarCampos();
+        schemaSector.validate(value).then(() => {
+            if (validarCapacidadLugarSector()) {
+                setsector((s) => [...s, value]);
+                reset();
+            }
+        });
+    }
+
+    const eliminar = (id_lugar: string, nombre_sector: string) => {
+        let keyDelete = `${id_lugar}${nombre_sector}`;
+        let sectorFilter = sector.filter((sector) => {
+            let key = `${sector.id_lugar}${sector.nombre}`;
+            if (key !== keyDelete) return true;
+            return false;
+        });
+        setsector(sectorFilter);
+    }
+
+    const validarCapacidadLugarSector = (): boolean => {
+        let isValidCapacidad = true;
+        lugar.find(lugar => {
+            if (value.lugar === lugar.nombre) {
+                let capacidadLugar = lugar.capacidad;
+                sector.forEach((sector) => {
+                    if (sector.lugar === lugar.nombre)
+                        capacidadLugar = capacidadLugar - sector.capacidad;
+                })
+                capacidadLugar = capacidadLugar - value.capacidad;
+                if (capacidadLugar < 0) {
+                    isValidCapacidad = false;
+                    seterrors({
+                        name: "sector",
+                        error: `No se puede agregar esa capacidad, capacidad limte del lugar ${lugar.nombre} es ${lugar.capacidad}`,
+                    });
+                }
+                return true;//break
+            }
+        });
+        return isValidCapacidad;
     }
 
     const validarCampos = () => {
@@ -71,7 +90,6 @@ const SectorCreate = (props: Props) => {
         });
         schemaSector.validate(value).catch((err) => {
             seterrors({
-                ...errors,
                 name: err.path,
                 error: err.errors[0],
             });
@@ -80,30 +98,21 @@ const SectorCreate = (props: Props) => {
 
     const validarLugarWithSector = (): boolean => {
         let isValidLugarWithSector = true;
-        evento.lugar.find((lugar) => {
-            if (lugar.sector.length === 0) {
-                isValidLugarWithSector = false;
-                seterrors({
-                    ...errors,
-                    name: "sector",
-                    error: `debe agregar al menos un sector al lugar: ${lugar.nombre}`,
-                });
-                return true; //break
-            }
-            return false;
+        lugar.forEach((lugar) => {
+            let result = sector.find((sector) => sector.lugar === lugar.nombre);
+            if (result === undefined) isValidLugarWithSector = false;
         });
+        if (!isValidLugarWithSector)
+            seterrors({ name: "sector", error: "todos los lugares deben tener al menos un sector!!!" })
         return isValidLugarWithSector;
     }
 
-    const nextPage = () => {
+    const save = async () => {
         if (validarLugarWithSector()) {
+            await dispatch(createSector(sector));
             setstep((next) => next + 1);
         }
     };
-
-    const eliminar = (lugar: string, sector: string) => {
-        dispatch(actionEvento.deleteSector({ lugar, sector }));
-    }
 
     return (
         <Container style={{ backgroundColor: CARD }}>
@@ -138,12 +147,12 @@ const SectorCreate = (props: Props) => {
                     <Form.Label><small>Lugares</small></Form.Label>
                     <Form.Select
                         name={'lugar'}
-                        onChange={(e) => onChangeSelect(e as React.FormEvent<HTMLSelectElement>, 'lugar')}
-                        value={value.lugar}
+                        onChange={(e) => OnSelectLugar(e.target.value)}
+                        value={`${value.id_lugar},${value.lugar}`}
                     >
                         {
-                            evento.lugar.map((lugar) => (
-                                <option key={lugar.nombre} value={lugar.nombre}>{lugar.nombre}</option>
+                            lugar.map((lugar) => (
+                                <option key={lugar.id} value={`${lugar.id},${lugar.nombre}`}>{lugar.nombre}</option>
                             ))
                         }
                     </Form.Select>
@@ -154,26 +163,26 @@ const SectorCreate = (props: Props) => {
                 </Form.Group>
             </Form>
 
-            <ListSector eliminar={eliminar} lugares={evento.lugar} />
+            <ListSector eliminar={eliminar} sector={sector} />
 
             <p className={'my-4 text-center text-muted'}>
                 <small className="text-danger">{errors.name === "sector" && errors.error}</small>
             </p>
 
-            <Button onClick={() => nextPage()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
+            <Button onClick={() => save()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
 
         </Container>
     )
 }
 
 interface SectorProps {
-    lugares: Lugar[];
-    eliminar: (lugar: string, sector: string) => void;
+    sector: Sector[];
+    eliminar: (id_lugar: string, nombre_sector: string) => void;
 }
 
 const ListSector = (props: SectorProps) => {
 
-    const { lugares, eliminar } = props;
+    const { sector, eliminar } = props;
 
     return (
         <Container>
@@ -183,28 +192,25 @@ const ListSector = (props: SectorProps) => {
                         <th>lugar</th>
                         <th>sector</th>
                         <th>capacidad</th>
-                        <th>Eliminar</th>
+                        <th>eliminar</th>
                     </tr>
                 </thead>
                 <tbody className=''>
                     {
-                        (lugares.length > 0) &&
-                        lugares.map((lugar, index) => {
-                            let lugarNombre = lugar.nombre;
-                            let data = lugar.sector.map((sector, index) => (
-                                <tr key={sector.nombre + index} >
-                                    <td>{lugarNombre}</td>
+                        (sector.length > 0) && (
+                            sector.map((sector, index) => (
+                                <tr key={index}>
+                                    <td>{sector.lugar}</td>
                                     <td>{sector.nombre}</td>
                                     <td>{sector.capacidad}</td>
                                     <td>
-                                        <button onClick={() => eliminar(lugarNombre, sector.nombre)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
+                                        <button onClick={() => eliminar(sector.id_lugar, sector.nombre)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
                                             <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
                                         </button>
                                     </td>
                                 </tr>
-                            ));
-                            return data;
-                        })
+                            ))
+                        )
                     }
                 </tbody>
             </Table>

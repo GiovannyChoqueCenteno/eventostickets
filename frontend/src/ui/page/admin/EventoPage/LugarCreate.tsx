@@ -4,13 +4,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 import { BTN_PRIMARY, BTN_RED, CARD } from '../../../const/theme';
-import { ErrorMap } from './interface/interface';
+import { ErrorMap, Lugar } from './interface/interface';
 import useForm from '../../../../hook/useForm';
-import { useAppDispatch, useAppSelector } from '../../../../redux/store/config';
 import { schemaLugar } from './validacion/schemaLugar';
 import MapLeaflet from '../../../component/MapLeaflet';
-import { actionEvento } from '../../../../redux/slice/eventoSlice';
-import { Horario, Lugar, Sector } from '../../../../redux/interface/evento';
+import { useAppDispatch } from '../../../../redux/store/config';
+import { createLugar } from '../../../../redux/middleware/evento';
 
 interface Props {
     setstep: Dispatch<SetStateAction<number>>;
@@ -19,12 +18,11 @@ interface Props {
 const LugarCreate = (props: Props) => {
 
     const { setstep } = props;
-    const evento = useAppSelector((s) => s.evento);
+    const dispatch = useAppDispatch();
     const [lugares, setlugares] = useState<Lugar[]>([] as Lugar[]);
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
-    const dispatch = useAppDispatch();
 
-    const { value, onChange, setData, reset } = useForm({
+    const { value, onChange, setData, reset } = useForm<Lugar>({
         nombre: "",
         direccion: "",
         capacidad: 0,
@@ -51,19 +49,15 @@ const LugarCreate = (props: Props) => {
         });
     }
 
-    const eliminarLugar = (nombre: string) => {
+    const eliminar = (nombre: string) => {
         let lugaresFilter = lugares.filter((lugar) => lugar.nombre !== nombre);
         setlugares(lugaresFilter);
     }
 
-    const saveLugar = () => {
+    const agregar = () => {
         validarCampos();
         schemaLugar.validate(value).then(() => {
-            setlugares((lugares) => [...lugares, {
-                ...value,
-                horario: [],
-                sector: []
-            }]);
+            setlugares((lugares) => [...lugares, value]);
             reset();
         });
     }
@@ -73,9 +67,21 @@ const LugarCreate = (props: Props) => {
         validarCampos();
     }
 
-    const saveStore = () => {
-        dispatch(actionEvento.addLugar(lugares));
-        setstep((next) => next + 1);
+    const validarEventoWithLugar = () => {
+        if (lugares.length === 0) {
+            seterrors({
+                name: "lugar",
+                error: "debe agregar al menos un lugar para el evento!!!"
+            })
+            return false;
+        }
+        return true;
+    }
+    const save = async () => {
+        if (validarEventoWithLugar()) {
+            await dispatch(createLugar(lugares));
+            setstep((next) => next + 1);
+        }
     }
 
     return (
@@ -126,8 +132,6 @@ const LugarCreate = (props: Props) => {
                     <small>{(errors.name === "longitud" || errors.name === "latitud") && errors.error}</small>
                 </p>
 
-                {/*Mapa  */}
-
                 <MapLeaflet
                     sizeheight='300px'
                     sizewidth='100%'
@@ -136,16 +140,21 @@ const LugarCreate = (props: Props) => {
                 />
 
                 <Form.Group className={'col-md-6 my-3'}>
-                    <Button onClick={() => saveLugar()} variant={""} className={'text-white'} style={{ backgroundColor: BTN_PRIMARY }}>agregar</Button>
+                    <Button onClick={() => agregar()} variant={""} className={'text-white'} style={{ backgroundColor: BTN_PRIMARY }}>agregar</Button>
                 </Form.Group>
 
             </Form>
 
             <hr />
 
-            <ListLugar eliminar={eliminarLugar} lugares={lugares} />
+            <ListLugar eliminar={eliminar} lugares={lugares} />
 
-            <Button onClick={() => saveStore()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
+            <p className={'my-4 text-center text-muted'}>
+                <small className="text-danger">{errors.name === "lugar" && errors.error}</small>
+            </p>
+
+
+            <Button onClick={() => save()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
 
         </Container>
     )
@@ -176,7 +185,7 @@ const ListLugar = (props: PropsList) => {
                     {
                         (lugares.length > 0) &&
                         lugares.map((lugar, index) => (
-                            <tr key={lugar.nombre + index} >
+                            <tr key={lugar.nombre + index}>
                                 <td>{lugar.nombre}</td>
                                 <td>{lugar.capacidad}</td>
                                 <td>{lugar.longitud}</td>

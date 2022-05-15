@@ -4,12 +4,11 @@ import { faTrashAlt, } from '@fortawesome/free-solid-svg-icons';
 import { Button, Container, Form, Table } from 'react-bootstrap'
 
 import useForm from '../../../../hook/useForm';
-import { Lugar } from '../../../../redux/interface/evento';
-import { actionEvento } from '../../../../redux/slice/eventoSlice';
 import { useAppDispatch, useAppSelector } from '../../../../redux/store/config'
 import { BTN_PRIMARY, BTN_RED, CARD } from '../../../const/theme';
-import { ErrorMap } from './interface/interface';
+import { ErrorMap, Horario } from './interface/interface';
 import { schemaHorario } from './validacion/schemaHorario';
+import { createHorario } from '../../../../redux/middleware/evento';
 
 interface Props {
     setstep: Dispatch<SetStateAction<number>>;
@@ -18,15 +17,16 @@ interface Props {
 const HorarioCreate = (props: Props) => {
 
     const { setstep } = props;
-    const evento = useAppSelector((s) => s.evento);
     const dispatch = useAppDispatch();
+    const { lugar } = useAppSelector((s) => s.evento);
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
-
-    const { value, onChange, onChangeSelect, reset } = useForm({
-        lugar: evento.lugar[0].nombre || '',
+    const [horario, sethorario] = useState<Horario[]>([] as Horario[]);
+    const { value, onChange, setData, reset } = useForm<Horario>({
+        id_lugar: lugar[0].id,
+        lugar: lugar[0].nombre,
         fecha: "",
         hora: "",
-        duracion: 0
+        duracion: 0,
     });
 
     const Onchange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -34,12 +34,30 @@ const HorarioCreate = (props: Props) => {
         onChange(e);
     }
 
-    const agregarHorario = () => {
+    const OnSelectLugar = (value: string) => {
+        let lugarAndId = value.split(',');
+        setData({
+            id_lugar: lugarAndId[0],
+            lugar: lugarAndId[1]
+        });
+    }
+
+    const agregar = () => {
         validarCampos();
         schemaHorario.validate(value).then(() => {
-            dispatch(actionEvento.addHorario(value))
+            sethorario((h) => [...h, value]);
             reset();
         });
+    }
+
+    const eliminar = (id_lugar: string, fecha: string, hora: string) => {
+        let keyDelete = `${id_lugar}${fecha}${hora}`;
+        let horarioFilter = horario.filter((h) => {
+            let key = `${h.id_lugar}${h.fecha}${h.hora}`;
+            if (key !== keyDelete) return true
+            return false;
+        });
+        sethorario(horarioFilter);
     }
 
     const validarCampos = () => {
@@ -58,29 +76,20 @@ const HorarioCreate = (props: Props) => {
 
     const validarLugarWithHorario = (): boolean => {
         let isValidLugarWithHorario = true;
-        evento.lugar.find((lugar) => {
-            if (lugar.horario.length === 0) {
-                isValidLugarWithHorario = false;
-                seterrors({
-                    ...errors,
-                    name: "horario",
-                    error: `debe agregar al menos un horario al lugar: ${lugar.nombre}`,
-                });
-                return true; //break
-            }
-            return false;
+        lugar.forEach((lugar) => {
+            let result = horario.find((h) => h.lugar === lugar.nombre);
+            if (result === undefined) isValidLugarWithHorario = false;
         });
+        if (!isValidLugarWithHorario)
+            seterrors({ name: "horario", error: "todos los lugares debe tener al menos un horario!!!" });
         return isValidLugarWithHorario;
     }
 
-    const nextPage = () => {
+    const save = async () => {
         if (validarLugarWithHorario()) {
+            await dispatch(createHorario(horario));
             setstep((next) => next + 1);
         }
-    }
-
-    const eliminar = (lugar: string, fecha: string, hora: string) => {
-        dispatch(actionEvento.deleteHorario({ lugar, fecha, hora }));
     }
 
     return (
@@ -91,12 +100,12 @@ const HorarioCreate = (props: Props) => {
                     <Form.Label><small>Lugares</small></Form.Label>
                     <Form.Select
                         name={'lugar'}
-                        onChange={(e) => onChangeSelect(e as React.FormEvent<HTMLSelectElement>, 'lugar')}
-                        value={value.lugar}
+                        onChange={(e) => OnSelectLugar(e.target.value)}
+                        value={`${value.id_lugar},${value.lugar}`}
                     >
                         {
-                            evento.lugar.map((lugar) => (
-                                <option key={lugar.nombre} value={lugar.nombre}>{lugar.nombre}</option>
+                            lugar.map((lugar) => (
+                                <option key={lugar.id} value={`${lugar.id},${lugar.nombre}`}>{lugar.nombre}</option>
                             ))
                         }
                     </Form.Select>
@@ -139,63 +148,58 @@ const HorarioCreate = (props: Props) => {
                 </Form.Group>
 
                 <Form.Group className={'col-md-6 my-3'}>
-                    <Button onClick={() => agregarHorario()} variant={""} className={'text-white'} style={{ backgroundColor: BTN_PRIMARY }}>agregar</Button>
+                    <Button onClick={() => agregar()} variant={""} className={'text-white'} style={{ backgroundColor: BTN_PRIMARY }}>agregar</Button>
                 </Form.Group>
 
             </Form>
 
-            <ListHorario eliminar={eliminar} lugares={evento.lugar} />
+            <ListHorario eliminar={eliminar} horario={horario} />
 
             <p className={'my-4 text-center text-muted'}>
                 <small className="text-danger">{errors.name === "horario" && errors.error}</small>
             </p>
 
-            <Button onClick={() => nextPage()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
+            <Button onClick={() => save()} variant={""} className={'text-white mb-3'} style={{ backgroundColor: BTN_PRIMARY }}>next</Button>
 
         </Container>
     )
 }
 
-
 interface HorarioProps {
-    lugares: Lugar[]
+    horario: Horario[]
     eliminar: (lugar: string, fecha: string, hora: string) => void;
 }
 
 const ListHorario = (props: HorarioProps) => {
 
-    const { lugares, eliminar } = props;
+    const { horario, eliminar } = props;
 
     return (
         <Container>
             <Table striped className={'my-4 border rounded text-muted'}>
                 <thead>
                     <tr>
-                        <th>Nombre</th>
+                        <th>Lugar</th>
                         <th>Fecha</th>
                         <th>Hora</th>
                         <th>Eliminar</th>
                     </tr>
                 </thead>
-                <tbody className=''>
+                <tbody>
                     {
-                        (lugares.length > 0) &&
-                        lugares.map((lugar, index) => {
-                            let lugarNombre = lugar.nombre;
-                            let data = lugar.horario.map((horario, index) => (
-                                <tr key={horario.fecha + index} >
-                                    <td>{lugarNombre}</td>
-                                    <td>{horario.fecha.toString()}</td>
-                                    <td>{horario.hora}</td>
-                                    <td>
-                                        <button onClick={() => eliminar(lugar.nombre, horario.fecha, horario.hora)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
-                                            <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ));
-                            return data;
-                        })
+                        (horario.length > 0) &&
+                        horario.map((horario, index) => (
+                            <tr key={index}>
+                                <td>{horario.lugar}</td>
+                                <td>{horario.fecha.toString()}</td>
+                                <td>{horario.hora}</td>
+                                <td>
+                                    <button onClick={() => eliminar(horario.id_lugar, horario.fecha, horario.hora)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
+                                        <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))
                     }
                 </tbody>
             </Table>
