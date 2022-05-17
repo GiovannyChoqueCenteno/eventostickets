@@ -50,7 +50,7 @@ const SectorCreate = (props: Props) => {
         });
     }
 
-    const eliminar = (id_lugar: string, nombre_sector: string) => {
+    const eliminar = (id_lugar: number, nombre_sector: string) => {
         let keyDelete = `${id_lugar}${nombre_sector}`;
         let sectorFilter = sector.filter((sector) => {
             let key = `${sector.id_lugar}${sector.nombre}`;
@@ -177,7 +177,7 @@ const SectorCreate = (props: Props) => {
 
 interface SectorProps {
     sector: Sector[];
-    eliminar: (id_lugar: string, nombre_sector: string) => void;
+    eliminar: (id_lugar: number, nombre_sector: string) => void;
 }
 
 const ListSector = (props: SectorProps) => {

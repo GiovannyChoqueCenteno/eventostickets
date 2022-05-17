@@ -25,7 +25,7 @@ const LugarCreate = (props: Props) => {
     const { value, onChange, setData, reset } = useForm<Lugar>({
         nombre: "",
         direccion: "",
-        capacidad: 0,
+        capacidad: "0",
         longitud: "",
         latitud: "",
     });

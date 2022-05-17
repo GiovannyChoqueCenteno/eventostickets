@@ -7,7 +7,12 @@ import { useLoadEvent } from '../../../../hook/useLoadEvent';
 
 const HomePage = () => {
 
-    const { evento, loading } = useLoadEvent();
+    const { evento, loading, eliminar } = useLoadEvent();
+
+    const Eliminar = (idEvento: number) => {
+        if (window.confirm('Esta seguro de eliminar el evento ?'))
+            eliminar(idEvento);
+    }
 
     return (
         <Container className={'mt-4 text-dark'}>
@@ -20,8 +25,9 @@ const HomePage = () => {
                     <thead>
                         <tr>
                             <th>name</th>
+                            <th>organizador</th>
+                            <th>estado</th>
                             <th>eliminar</th>
-                            <th>editar</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,14 +54,11 @@ const HomePage = () => {
                             evento.map((evento) => (
                                 <tr key={evento.id}>
                                     <th>{evento.titulo}</th>
+                                    <th>{evento.organizador}</th>
+                                    <th>{evento.estadoId}</th>
                                     <th>
-                                        <button className={'btn'} style={{ backgroundColor: BTN_RED }}>
+                                        <button onClick={() => Eliminar(evento.id)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
                                             <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
-                                        </button>
-                                    </th>
-                                    <th>
-                                        <button className={'btn'} style={{ backgroundColor: BTN_GREEN }}>
-                                            <FontAwesomeIcon icon={faEdit} color={"white"} />
                                         </button>
                                     </th>
                                 </tr>

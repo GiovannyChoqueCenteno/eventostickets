@@ -25,8 +25,7 @@ const HorarioCreate = (props: Props) => {
         id_lugar: lugar[0].id,
         lugar: lugar[0].nombre,
         fecha: "",
-        hora: "",
-        duracion: 0,
+        duracion: "0",
     });
 
     const Onchange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -50,10 +49,10 @@ const HorarioCreate = (props: Props) => {
         });
     }
 
-    const eliminar = (id_lugar: string, fecha: string, hora: string) => {
-        let keyDelete = `${id_lugar}${fecha}${hora}`;
+    const eliminar = (id_lugar: number, fecha: string) => {
+        let keyDelete = `${id_lugar}${fecha}`;
         let horarioFilter = horario.filter((h) => {
-            let key = `${h.id_lugar}${h.fecha}${h.hora}`;
+            let key = `${h.id_lugar}${h.fecha}`;
             if (key !== keyDelete) return true
             return false;
         });
@@ -114,7 +113,7 @@ const HorarioCreate = (props: Props) => {
                 <Form.Group className={'col-md-6'}>
                     <Form.Label><small>Fecha</small></Form.Label>
                     <Form.Control
-                        type={'date'}
+                        type={'datetime-local'}
                         name={'fecha'}
                         value={value.fecha}
                         onChange={(e) => Onchange(e as React.FormEvent<HTMLInputElement>)}
@@ -123,19 +122,7 @@ const HorarioCreate = (props: Props) => {
                     <Form.Text className="text-danger">{errors.name === "fecha" && errors.error}</Form.Text>
                 </Form.Group>
 
-                <Form.Group className={'col-md-6'}>
-                    <Form.Label><small>Hora</small></Form.Label>
-                    <Form.Control
-                        type={'time'}
-                        name={'hora'}
-                        value={value.hora}
-                        onChange={(e) => Onchange(e as React.FormEvent<HTMLInputElement>)}
-                        autoComplete="off"
-                    />
-                    <Form.Text className="text-danger">{errors.name === "hora" && errors.error}</Form.Text>
-                </Form.Group>
-
-                <Form.Group className={'col-md-6'}>
+                <Form.Group className={'col-md-12'}>
                     <Form.Label><small>Duracion</small></Form.Label>
                     <Form.Control
                         type={'number'}
@@ -167,7 +154,7 @@ const HorarioCreate = (props: Props) => {
 
 interface HorarioProps {
     horario: Horario[]
-    eliminar: (lugar: string, fecha: string, hora: string) => void;
+    eliminar: (lugar: number, fecha: string) => void;
 }
 
 const ListHorario = (props: HorarioProps) => {
@@ -181,7 +168,7 @@ const ListHorario = (props: HorarioProps) => {
                     <tr>
                         <th>Lugar</th>
                         <th>Fecha</th>
-                        <th>Hora</th>
+                        <th>Duracion</th>
                         <th>Eliminar</th>
                     </tr>
                 </thead>
@@ -192,9 +179,9 @@ const ListHorario = (props: HorarioProps) => {
                             <tr key={index}>
                                 <td>{horario.lugar}</td>
                                 <td>{horario.fecha.toString()}</td>
-                                <td>{horario.hora}</td>
+                                <td>{horario.duracion}</td>
                                 <td>
-                                    <button onClick={() => eliminar(horario.id_lugar, horario.fecha, horario.hora)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
+                                    <button onClick={() => eliminar(horario.id_lugar, horario.fecha)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
                                         <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
                                     </button>
                                 </td>

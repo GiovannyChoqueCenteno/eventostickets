@@ -108,8 +108,8 @@ const EspacioCreate = (props: Props) => {
 
     const validarSectorWithEspacio = () => {
         let isValidSectorWithEspacio = true;
-        lugar.forEach((lugar) => {
-            lugar.sector.forEach((sector) => {
+        lugar.forEach((lug) => {
+            lug.sector.forEach((sector) => {
                 let res = espacio.find((esp) => esp.sector === sector.nombre);
                 if (res === undefined) isValidSectorWithEspacio = false;
             })

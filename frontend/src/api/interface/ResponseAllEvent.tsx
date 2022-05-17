@@ -4,4 +4,5 @@ export interface ResponseAllEvento {
     descripcion: string;
     categoriaId: number;
     estadoId: number;
+    organizador: string;
 }

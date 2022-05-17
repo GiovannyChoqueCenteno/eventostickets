@@ -1,3 +1,4 @@
+import { Foto } from "../../api/model/Foto";
 
 export interface DataSource {
     id: number;
@@ -6,43 +7,45 @@ export interface DataSource {
 }
 
 export interface Evento {
-    id: string;
+    id: number;
     titulo: string;
     descripcion: string;
     organizador: string;
     categoriaId: number;
     estadoId: number;
-    images: DataSource[];
+    images: Foto[];
     lugar: Lugar[];
 }
 
 export interface Lugar {
-    id: string;
+    id: number;
     nombre: string;
     direccion: string;
-    capacidad: number;
     longitud: string;
     latitud: string;
+    capacidad: number;
+    eventoId: number;
     horario: Horario[]
     sector: Sector[]
 }
 
 export interface Horario {
-    id: string;
+    id: number;
     fecha: string;
-    hora: string;
     duracion: number
+    lugarId: number;
 }
 
 export interface Sector {
-    id: string;
+    id: number;
     nombre: string;
     capacidad: number;
+    lugarId: number;
     espacio: Espacio[]
 }
 
 export interface Espacio {
-    id: string;
+    id: number;
     nombre: string;
     descripcion: string;
     capacidad: number;

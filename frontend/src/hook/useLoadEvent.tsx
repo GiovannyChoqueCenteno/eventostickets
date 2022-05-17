@@ -18,12 +18,28 @@ export const useLoadEvent = () => {
         }
     }
 
+    const eliminar = async (idevento: number) => {
+        try {
+            let response = await apiBackend.delete(`/evento/${idevento}`);
+            if (response.status !== 200) {
+                alert("No se pudo eliminar response");
+                return;
+            }
+            let eventoFilter = evento.filter((e) => e.id !== idevento);
+            setevento(eventoFilter);
+        } catch (error) {
+            console.log(`useLoadEvent:eliminar ${error}`)
+            alert("useLoadEvent:eliminar Error Server");
+        }
+    }
+
     useEffect(() => {
         getAllCategoria();
     }, []);
 
     return {
         evento,
-        loading
+        loading,
+        eliminar
     }
 }

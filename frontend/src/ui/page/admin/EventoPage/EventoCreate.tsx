@@ -1,14 +1,13 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { Container, Form, Button } from 'react-bootstrap';
 import { RMIUploader } from 'react-multiple-image-uploader';
-import { useAppDispatch, useAppSelector } from '../../../../redux/store/config';
+import { useAppDispatch } from '../../../../redux/store/config';
 
 import useForm from '../../../../hook/useForm';
 import { BTN_PRIMARY, CARD } from '../../../const/theme';
 import { DataSource } from '../../../../redux/interface/evento';
-import { ErrorMap, ImagePartial } from './interface/interface';
+import { ErrorMap, Evento, ImagePartial } from './interface/interface';
 import { schemaEvento } from './validacion/schemaEvento';
-import { actionEvento } from '../../../../redux/slice/eventoSlice';
 import { useLoadCategoria } from '../../../../hook/useLoadCategoria';
 import { eventoCreate, imageUpload } from '../../../../redux/middleware/evento';
 interface Props {
@@ -23,11 +22,11 @@ const EventoCreate = (props: Props) => {
     const [countImage, setcountImage] = useState<number>(0);
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
 
-    const { value, onChange, onChangeSelect, setField } = useForm({
+    const { value, onChange, onChangeSelect, setField } = useForm<Evento>({
         titulo: "",
         descripcion: "",
         organizador: "",
-        categoriaId: 1,
+        categoriaId: "1",
     });
 
     const Onchange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -42,7 +41,6 @@ const EventoCreate = (props: Props) => {
         });
         schemaEvento.validate(value).catch((err) => {
             seterrors({
-                ...errors,
                 name: err.path,
                 error: err.errors[0],
             });
@@ -76,7 +74,7 @@ const EventoCreate = (props: Props) => {
         schemaEvento.validate(value).then(async () => {
             if (dataSource.length > 0) {
                 await dispatch(eventoCreate(value));
-                await dispatch(imageUpload({ images: dataSource }));
+                await dispatch(imageUpload({ images: dataSource }))
                 setstep((next) => next + 1);
             }
         });
