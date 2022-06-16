@@ -4,9 +4,16 @@ body {
 }
 
 .icon-menu {
-    position: fixed;
+    position: absolute;
     top: 20px;
     right: 20px;
+    color:black;
+    cursor: pointer;
+}
+.icon-perfil {
+    position: absolute;
+    top: 20px;
+    right: 50px;
     color:black;
     cursor: pointer;
 }

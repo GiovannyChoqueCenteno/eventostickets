@@ -1,8 +1,10 @@
 export interface Espacio {
-    id:          number;
-    nombre:      string;
+    id: number;
+    nombre: string;
     descripcion: string;
-    cantidad:    number;
-    capacidad:   number;
-    sectorId:    number;
+    cantidad: number;
+    capacidad: number;
+    sectorId: number;
+    precio: number;
+    disponible: number;
 }

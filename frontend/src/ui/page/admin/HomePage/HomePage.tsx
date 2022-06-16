@@ -1,8 +1,8 @@
 import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashAlt, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { Container, Spinner, Table } from 'react-bootstrap'
-import { CARD, BTN_RED, BTN_GREEN } from '../../../const/theme'
+import { CARD, BTN_RED  } from '../../../const/theme'
 import { useLoadEvent } from '../../../../hook/useLoadEvent';
 
 const HomePage = () => {
