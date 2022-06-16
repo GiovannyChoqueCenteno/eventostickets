@@ -4,7 +4,12 @@ import pdf from 'html-pdf'
 
 
 export const generarQR = async (detalle , index) => {
-    const qrData = await qrcode.toDataURL("Hola a todos")
+    const qrData = await qrcode.toDataURL(`
+    Evento :  ${detalle.espacio.sector.lugar.evento.titulo}
+    Lugar : ${detalle.espacio.sector.lugar.direccion}
+    Sector :  ${detalle.espacio.sector.nombre}
+    Espacio : ${detalle.espacio.descripcion}
+    `)
     const htmlContent = `
     <!DOCTYPE html>
     <html>

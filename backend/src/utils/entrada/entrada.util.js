@@ -29,9 +29,11 @@ export const getDetail = async(id)=>{
                         descripcion : true,
                         sector : {
                             select : {
+                                
                                 nombre : true,
                                 lugar : {
                                     select :{
+                                    
                                         direccion : true ,
                                         evento: {
                                             select : {
