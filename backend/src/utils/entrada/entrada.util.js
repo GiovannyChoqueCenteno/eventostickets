@@ -33,7 +33,7 @@ export const getDetail = async(id)=>{
                                 nombre : true,
                                 lugar : {
                                     select :{
-                                    
+                                        
                                         direccion : true ,
                                         evento: {
                                             select : {
@@ -55,6 +55,7 @@ export const getDetail = async(id)=>{
     }
 }
 
+
 export const mandarEntradas = async(id)=>{
 
     const detalle=await getDetail(id)
@@ -62,14 +63,16 @@ export const mandarEntradas = async(id)=>{
     const array = Array.from(Array(longitud).keys())
     const attachments =[]
     array.forEach((index) =>{
-        generarQR(detalle , index)
-        console.log(`Pase ${index} veces`)
         attachments.push( {
             filename : `Entrada ${index+1}`,
             path : `${path.join(__dirname, '../../../pdf',`${detalle.id}${index}.pdf`)}`,
             contentType : 'application/pdf'
         })
+        generarQR(detalle , index)
+
     })
-    console.log(attachments)
-    mandarEmail(detalle.factura.usuario.email , attachments)
+    
+    setTimeout( ()=>{
+        mandarEmail(detalle.factura.usuario.email , attachments)
+    } , 10000)
 }

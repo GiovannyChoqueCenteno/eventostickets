@@ -4,6 +4,7 @@ import pdf from 'html-pdf'
 
 
 export const generarQR = async (detalle , index) => {
+    //console.log("Intente crear el qr")
     const qrData = await qrcode.toDataURL(`
     Evento :  ${detalle.espacio.sector.lugar.evento.titulo}
     Lugar : ${detalle.espacio.sector.lugar.direccion}
@@ -44,6 +45,7 @@ export const generarQR = async (detalle , index) => {
     
     </html>
   `
+    console.log("intentando crear")
     pdf.create(htmlContent).toFile(`./pdf/${detalle.id}${index}.pdf`, function (err, res) {
         if (err) {
             console.log(err);

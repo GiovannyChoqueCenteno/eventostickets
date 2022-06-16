@@ -6,7 +6,8 @@ export const addDetalleFactura = async (req, res) => {
         const detalle = await prisma.detalleFactura.create({
             data: newDetalle
         })
-        mandarEntradas(detalle.id)
+        console.log(detalle)
+        mandarEntradas(detalle.id )
         res.json(detalle)
     } catch (error) {
         console.log(error);
