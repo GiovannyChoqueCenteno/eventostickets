@@ -4,6 +4,7 @@ import { Evento } from '../../api/model/Evento';
 import { Sector } from '../../api/model/Sector';
 import { Espacio } from '../../api/model/Espacio';
 import { Evento as StateEvento } from '../interface/evento';
+import { Usuario as StateUsuario } from '../interface/usuario';
 
 import { Foto } from '../../api/model/Foto';
 import { DataSource } from '../interface/evento';
@@ -17,7 +18,8 @@ type argsEvento = {
     categoriaId: string;
 }
 export const eventoCreate = createAsyncThunk('evento/create', async (args: argsEvento, thunkApi) => {
-    let body = { ...args, categoriaId: Number.parseInt(args.categoriaId), estadoId: 2 }
+    let { usuario } = thunkApi.getState() as { usuario: StateUsuario };
+    let body = { ...args, categoriaId: Number.parseInt(args.categoriaId), estadoId: 1, adminId: usuario.id }
     try {
         let response = await apiBackend.post<Evento>('/evento', body);
         if (response.status !== 200) {
@@ -170,6 +172,7 @@ type argsEspacio = {
     capacidad: number;
     cantidad: number;
     id_sector: number;
+    precio: number;
 }
 
 export const createEspacio = createAsyncThunk('/espacio/create', async (args: argsEspacio[], thunkApi) => {
@@ -183,7 +186,9 @@ export const createEspacio = createAsyncThunk('/espacio/create', async (args: ar
                 descripcion: espacio.descripcion,
                 cantidad: Number(espacio.cantidad),
                 capacidad: Number(espacio.capacidad),
-                sectorId: Number(espacio.id_sector)
+                precio: Number(espacio.precio),
+                disponible: Number(espacio.cantidad),
+                sectorId: Number(espacio.id_sector),
             }
             let response = await apiBackend.post<Espacio>('/espacio', body);
             if (response.status !== 200)

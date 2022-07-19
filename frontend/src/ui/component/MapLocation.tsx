@@ -14,15 +14,14 @@ const MapLocation = (props: Props) => {
     return (
         <Container className={'rounded'} >
             <MapContainer
-                // lng,lat
-                center={[-17.775001, -63.195761]} zoom={15}
+                center={[Number(lat), Number(lng)]} zoom={15}
                 style={{ width: "100%", height: 300 }}
             >
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <Marker position={[-17.775001, -63.195761]}>
+                <Marker position={[Number(lat), Number(lng)]}>
                     <Popup>
                         {popup}
                     </Popup>

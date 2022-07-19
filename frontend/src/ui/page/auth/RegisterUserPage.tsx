@@ -22,7 +22,7 @@ const RegisterUserPage = () => {
   const onSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     try {
-      const response = await apiBackend.post<ResponseToken>(`/usuario`, value);
+      const response = await apiBackend.post<ResponseToken>(`/usuario`, { ...value, rolId: 3 });
       let token = response.data.token;
       dispatch(actionUsuario.addUsuario({ token }));
       navigate(`/`, { replace: true });

@@ -5,21 +5,25 @@ import logoLibelula from '../../../assets/image/logoLibelula.png';
 import logoPaypal from '../../../assets/image/logoPaypal.png';
 import logoStripe from '../../../assets/image/logoStripe.png';
 import useForm from '../../../../hook/useForm';
-import { useAppSelector } from '../../../../redux/store/config';
+import { useAppDispatch, useAppSelector } from '../../../../redux/store/config';
 import useEspacio from '../../../../hook/useEspacio';
 import { ErrorMap } from '../../admin/EventoPage/interface/interface';
 import { schemaPay } from './validation/schemaPay';
 import apiBackend from '../../../../api/apiBackend';
 import { Factura } from '../../../../api/model/Factura';
 import { Detalle } from '../../../../api/model/Detalle';
+import { actionCart } from '../../../../redux/slice/cartSlice';
+import { useNavigate } from 'react-router-dom';
 
 const PayTicketPage = () => {
 
+    const navigate = useNavigate();
+    const dispatch = useAppDispatch();
     const usuario = useAppSelector((s) => s.usuario);
     const cart = useAppSelector((s) => s.cart);
     const { espacio } = useEspacio({ espacioId: cart.espacioId });
     const [errors, seterrors] = useState<ErrorMap>({} as ErrorMap);
-    const { value, onChange,reset } = useForm({
+    const { value, onChange, reset } = useForm({
         tipoPago: "stripe",
         nombre: usuario.nombre,
         card: "",
@@ -56,6 +60,8 @@ const PayTicketPage = () => {
             }
             reset();
             alert("Se realizo la compra correctamente");
+            dispatch(actionCart.clear());
+            navigate("/");
         });
     }
 
@@ -85,7 +91,6 @@ const PayTicketPage = () => {
             console.log("error createDetalle : " + error);
         }
     }
-
     const createEntrada = async (detalleId: number, espacio: string, sector: string, evento: string) => {
         const data = {
             detalleId,
@@ -99,7 +104,6 @@ const PayTicketPage = () => {
             console.log("error createEntrada : " + error);
         }
     }
-
 
     return (
         <Container className={'mt-4 text-dark p-4'}>

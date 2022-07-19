@@ -35,6 +35,8 @@ const cartSlice = createSlice({
             state.fecha_valida = "";
             state.sector = "";
             state.espacio = "";
+            state.cantidad = 0;
+            state.espacioId = 0;
         }
     }
 });

@@ -2,8 +2,12 @@ import React, { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { actionUsuario } from '../redux/slice/usuarioSlice';
 import { useAppDispatch, useAppSelector } from '../redux/store/config';
+import AddEncargadoPage from '../ui/page/admin/AddEncargadoPage/AddEncargadoPage';
+import EditEventoPage from '../ui/page/admin/EditEventoPage/EditEventoPage';
 import EventoPage from '../ui/page/admin/EventoPage/EventoPage';
 import HomePageAdmin from '../ui/page/admin/HomePage/HomePage';
+import LugarPage from '../ui/page/admin/LugarPage/LugarPage';
+import RegistroPage from '../ui/page/admin/RegistroPage/RegistroPage';
 import LoginPage from '../ui/page/auth/LoginPage';
 import RegisterUserPage from '../ui/page/auth/RegisterUserPage';
 import BuyTicketPage from '../ui/page/user/BuyTicket/BuyTicketPage';
@@ -39,6 +43,10 @@ const AppRoute = () => {
                             <Route element={<RouteAdmin isAuthenticated={isAuthenticated} type={type} />}>
                                 <Route index element={<HomePageAdmin />} />
                                 <Route path={'evento/create'} element={<EventoPage />} />
+                                <Route path={'evento/edit'} element={<EditEventoPage />} />
+                                <Route path={'encargado/add/:idEvento'} element={<AddEncargadoPage />} />
+                                <Route path={'lugar/:idEvento'} element={<LugarPage />} />
+                                <Route path={'lugar/registro/:idLugar'} element={<RegistroPage />} />
                             </Route>
                         </Route>
                     </Route>

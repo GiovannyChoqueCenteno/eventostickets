@@ -19,9 +19,11 @@ const usuarioSlice = createSlice({
             localStorage.setItem("_token", action.payload.token);
             state.id = usuario.id;
             state.nombre = usuario.nombre;
-            state.isAuthenticated = true;
-            state.type = usuario.rolId === 1 ? "cliente" : "admin";
             state.email = usuario.email;
+            if (usuario.rolId === 1 || usuario.rolId === 3) {
+                state.isAuthenticated = true;
+                state.type = usuario.rolId === 1 ? "admin" : "cliente"
+            }
         },
         logout: (state) => {
             state.id = 0;

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Container } from 'react-bootstrap'
 import { useLoadEvent } from '../../../../hook/useLoadEvent'
 import { CARD } from '../../../const/theme'
@@ -7,7 +7,11 @@ import Search from './component/Search'
 
 const HomePage = () => {
 
-    const { eventoFilter, search, filterCategoria } = useLoadEvent();
+    const { eventoFilter, search, filterCategoria, getAllEvent } = useLoadEvent();
+
+    useEffect(() => {
+        getAllEvent()
+    }, [])
 
     return (
         <Container className={'mt-4 p-4 text-dark'}>

@@ -29,6 +29,7 @@ const EspacioCreate = (props: Props) => {
         lugar: lugar[0].nombre,
         sector: lugar[0].sector[0].nombre,
         id_sector: lugar[0].sector[0].id,
+        precio: 0
     });
 
     const OnSelectSector = (value: string) => {
@@ -79,7 +80,6 @@ const EspacioCreate = (props: Props) => {
 
     const validarCapacidadSector = (): boolean => {
         let isValidEspacio = true;
-
         lugar.find((lugar) => {
             if (lugar.nombre === value.lugar) {
                 lugar.sector.find((sector) => {
@@ -87,11 +87,12 @@ const EspacioCreate = (props: Props) => {
                         let capacidadSector = sector.capacidad;
                         espacio.forEach((esp) => {
                             let { capacidad, cantidad } = esp;
-                            if (esp.sector === value.sector)
+                            if (esp.sector === value.sector && esp.lugar == value.lugar)
                                 capacidadSector = capacidadSector - (cantidad * capacidad)
                         });
                         capacidadSector = capacidadSector - (value.capacidad * value.cantidad);
                         if (capacidadSector < 0) {
+
                             isValidEspacio = false;
                             seterrors({
                                 name: "espacio",
@@ -101,6 +102,7 @@ const EspacioCreate = (props: Props) => {
                         return true;//break
                     }
                 });
+                return true;
             }
         });
         return isValidEspacio;
@@ -201,7 +203,22 @@ const EspacioCreate = (props: Props) => {
                     <Form.Text className="text-danger">{errors.name === "cantidad" && errors.error}</Form.Text>
                 </Form.Group>
 
-                <Form.Group className={'col-md-6 my-3'}>
+                <Form.Group className={'col-md-6'}>
+                    <Form.Label><small>Precio</small></Form.Label>
+                    <Form.Control
+                        type={'number'}
+                        placeholder={'precio'}
+                        name={'precio'}
+                        autoComplete="off"
+                        value={value.precio}
+                        onChange={(e) => Onchange(e as React.FormEvent<HTMLInputElement>)}
+                    />
+                    <Form.Text className="text-danger">{errors.name === "cantidad" && errors.error}</Form.Text>
+                </Form.Group>
+
+                <Form.Group className={'col-md-6'}></Form.Group>
+
+                <Form.Group className={'col-md-6 my-3 '}>
                     <Button onClick={() => agregar()} variant={""} className={'text-white'} style={{ backgroundColor: BTN_PRIMARY }}>agregar</Button>
                 </Form.Group>
 

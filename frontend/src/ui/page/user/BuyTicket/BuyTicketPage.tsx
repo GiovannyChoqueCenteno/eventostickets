@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button, Container, Form, Image } from 'react-bootstrap'
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Espacio } from '../../../../api/model/Espacio';
 import useForm from '../../../../hook/useForm';
 import useSector from '../../../../hook/useSector';
 import { actionCart } from '../../../../redux/slice/cartSlice';
@@ -22,6 +23,8 @@ const BuyTicketPage = () => {
     const dispatch = useAppDispatch();
     const params = location.state as locationParam;
     const { sectorEspacio } = useSector({ lugarId: Number(params.lugarId) });
+    const [espacio, setespacio] = useState<Espacio>({} as Espacio);
+
 
     const { value, onChange, setData } = useForm({
         sector: "",
@@ -45,6 +48,7 @@ const BuyTicketPage = () => {
             }
         })
     }
+
     const OnEspacio = (e: React.FormEvent<HTMLSelectElement>) => {
         let espacio = e.currentTarget.value.split(",");
         setData({
@@ -70,8 +74,37 @@ const BuyTicketPage = () => {
             cantidad: value.cantidad,
             espacioId: value.espacio
         }
+
+        if (!ValidarDispobibilidadEspacio(value.sector, value.espacio, Number(value.cantidad))) {
+            alert("No se puede comprar esa cantidad sobrepasa la cantidad disponible!!!");
+            return;
+        }
+
+        if (Number(value.cantidad) > 5) {
+            alert("La cantidad maxima de compras es de 5!!!");
+            return;
+        }
+
         dispatch(actionCart.addSectorEspacio(payload));
         navigate('/pay');
+    }
+
+    const ValidarDispobibilidadEspacio = (sectorId: string, espacioId: string, cantidad: number) => {
+        let valido = false;
+        sectorEspacio.find((sector) => {
+            if (sector.id.toString() === sectorId) {
+                sector.espacio.find((esp) => {
+                    if (esp.id.toString() === espacioId) {
+                        if (cantidad <= esp.disponible) {
+                            valido = true;
+                            return true;
+                        }
+                    }
+                })
+                return true;
+            }
+        });
+        return valido;
     }
 
     return (
@@ -121,6 +154,7 @@ const BuyTicketPage = () => {
                                                     <div className={'p-2'}>
                                                         <h6 className={'my-2'}>Precio {esp.nombre} :{esp.precio}</h6>
                                                         <h6 className={'my-2'}>Capacidad {esp.capacidad}</h6>
+                                                        <h6 className={'my-2'}>Disponible {esp.disponible}</h6>
                                                     </div>
                                                 </React.Fragment>
                                             )

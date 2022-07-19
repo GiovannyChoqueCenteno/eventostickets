@@ -1,18 +1,24 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import { Container, Spinner, Table } from 'react-bootstrap'
-import { CARD, BTN_RED  } from '../../../const/theme'
+import { faTrashAlt, faUserGroup, faEdit } from '@fortawesome/free-solid-svg-icons';
+import { Button, Container, Spinner, Table } from 'react-bootstrap'
+import { CARD, BTN_RED, SELECT, BTN_GREEN, BTN_PRIMARY } from '../../../const/theme'
 import { useLoadEvent } from '../../../../hook/useLoadEvent';
+import { Link, useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
 
-    const { evento, loading, eliminar } = useLoadEvent();
+    const navigate = useNavigate();
+    const { evento, loading, eliminar, getMyEvent } = useLoadEvent();
 
     const Eliminar = (idEvento: number) => {
         if (window.confirm('Esta seguro de eliminar el evento ?'))
             eliminar(idEvento);
     }
+
+    useEffect(() => {
+        getMyEvent()
+    }, [])
 
     return (
         <Container className={'mt-4 text-dark'}>
@@ -20,13 +26,18 @@ const HomePage = () => {
             <h4 className=''>Listado Eventos</h4>
             <hr />
 
-            <Container className={'rounded shadow p-2'} style={{ backgroundColor: CARD }}>
-                <Table className={"striped"}>
+            <Container className={'rounded shadow p-4'} style={{ backgroundColor: CARD }}>
+                <Button onClick={() => navigate('/main/admin/evento/create')} variant="" style={{ backgroundColor: SELECT, color: "white" }} >
+                    Crear Evento
+                </Button>
+                <Table className={"striped "}>
                     <thead>
                         <tr>
                             <th>name</th>
                             <th>organizador</th>
-                            <th>estado</th>
+                            <th>encargado</th>
+                            <th>registro</th>
+                            <th>editar</th>
                             <th>eliminar</th>
                         </tr>
                     </thead>
@@ -53,14 +64,30 @@ const HomePage = () => {
                         {
                             evento.map((evento) => (
                                 <tr key={evento.id}>
-                                    <th>{evento.titulo}</th>
-                                    <th>{evento.organizador}</th>
-                                    <th>{evento.estadoId}</th>
-                                    <th>
+                                    <td>{evento.titulo}</td>
+                                    <td>{evento.organizador}</td>
+                                    <td>
+                                        <button onClick={() => { navigate(`/main/admin/encargado/add/${evento.id}`) }} className={'btn'} style={{ backgroundColor: BTN_GREEN }}>
+                                            <FontAwesomeIcon icon={faUserGroup} color={"white"} />
+                                        </button>
+                                    </td>
+
+                                    <td>
+                                        <button onClick={() => { navigate(`/main/admin/lugar/${evento.id}`) }} className={'btn'} style={{ backgroundColor: BTN_GREEN }}>
+                                            <FontAwesomeIcon icon={faUserGroup} color={"white"} />
+                                        </button>
+                                    </td>
+
+                                    <td>
+                                        <Link to={`/main/admin/evento/edit`} state={{ evento }} className={'btn'} style={{ backgroundColor: BTN_PRIMARY }}>
+                                            <FontAwesomeIcon icon={faEdit} color={"white"} />
+                                        </Link>
+                                    </td>
+                                    <td>
                                         <button onClick={() => Eliminar(evento.id)} className={'btn'} style={{ backgroundColor: BTN_RED }}>
                                             <FontAwesomeIcon icon={faTrashAlt} color={"white"} />
                                         </button>
-                                    </th>
+                                    </td>
                                 </tr>
                             ))
                         }

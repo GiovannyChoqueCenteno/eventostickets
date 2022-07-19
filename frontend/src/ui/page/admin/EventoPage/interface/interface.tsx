@@ -2,8 +2,8 @@ export type ImagePartial = {
     dataURL: string;
     file: File;
 }
-export type Evento={
-    titulo:      string;
+export type Evento = {
+    titulo: string;
     descripcion: string;
     categoriaId: string;
     organizador: string;
@@ -39,6 +39,7 @@ export type Espacio = {
     sector: string,
     lugar: string,
     id_sector: number,
+    precio: number
 }
 
 export type ErrorMap = {

@@ -2,12 +2,12 @@ import React, { useState } from 'react'
 import { Container, Row, Col, Form, Button } from 'react-bootstrap'
 import { CARD, BTN_PRIMARY } from '../../const/theme'
 import security from '../../assets/image/security.svg';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import useForm from '../../../hook/useForm';
 import apiBackend from '../../../api/apiBackend';
 import { actionUsuario } from '../../../redux/slice/usuarioSlice';
 import { ResponseToken } from '../../../api/interface/ResponseToken';
-import { useAppDispatch, useAppSelector } from '../../../redux/store/config';
+import { useAppDispatch } from '../../../redux/store/config';
 import { AxiosError } from 'axios';
 import { ErrorValidacion } from '../../../api/interface/ErrorValidacion';
 
@@ -16,8 +16,6 @@ const LoginPage = () => {
 
     const [error, seterror] = useState("");
     const dispatch = useAppDispatch();
-    const cart = useAppSelector((s) => s.cart);
-    const navigate = useNavigate();
     const { value, onChange } = useForm({
         email: "",
         password: ""
