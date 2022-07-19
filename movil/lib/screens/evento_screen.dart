@@ -53,7 +53,7 @@ class EventoScreen extends StatelessWidget {
                               if(codigo != '-1' && res!.registro.isNotEmpty){
                                   showDialog(context: context, builder: (_)=>_AlertDialog("Error de entrada", "Entrada ya registrada"));
                               }
-                              if(codigo != '-1' && res != null){
+                              if(codigo != '-1' && res != null ){
                                 showDialog(context: context, builder: (_)=>_AlertDialogConfirm(res.id,evento.lugares[index].id ,codigo));
                               }
                             },
