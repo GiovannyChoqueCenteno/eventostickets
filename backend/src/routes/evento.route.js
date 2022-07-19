@@ -9,5 +9,7 @@ router.post('/', eventoController.createEvento)
 router.delete('/:id',eventoController.deleteEvento)
 router.put('/:id' , eventoController.updateEvento)
 
+router.get('/admin/:id' , eventoController.getEventosAdmin)
+router.get('/one/:id' , eventoController.getOneEvento)
 
 export default router

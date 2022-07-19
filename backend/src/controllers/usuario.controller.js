@@ -45,6 +45,7 @@ export const addUsuario = async (req, res) => {
 export const login = async (req, res) => {
     try {
         console.log(process.env.JWT_SECRET)
+        console.log(req.body)
         const { email, password } = req.body
         const usuario = await prisma.usuario.findFirst({
             where: {
@@ -65,6 +66,7 @@ export const login = async (req, res) => {
             token: createToken(usuario, process.env.JWT_SECRET, '3h')
         })
     } catch (error) {
+        console.log(error);
         res.status(500).send(error)
     }
 }

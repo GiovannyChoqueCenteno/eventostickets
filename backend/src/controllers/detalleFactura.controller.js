@@ -7,7 +7,7 @@ export const addDetalleFactura = async (req, res) => {
             data: newDetalle
         })
         console.log(detalle)
-        mandarEntradas(detalle.id )
+        mandarEntradas(detalle.id)
         res.json(detalle)
     } catch (error) {
         console.log(error);

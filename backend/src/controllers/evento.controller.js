@@ -24,9 +24,39 @@ export const getEventos = async (req, res) => {
     }
 }
 
+export const getOneEvento = async (req, res) => {
+    try {
+        const { id } = req.params
+        const evento = await prisma.evento.findFirst({
+            where: {
+                id: Number(id)
+            }
+        });
+        res.json(evento)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error)
+    }
+}
+
+export const getEventosAdmin = async (req, res) => {
+    try {
+        const { id } = req.params
+        const eventos = await prisma.evento.findMany({
+            where: {
+                adminId: Number(id)
+            }
+        })
+        res.json(eventos)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send(error)
+    }
+}
+
 export const deleteEvento = async (req, res) => {
     try {
-        const {id} = req.params
+        const { id } = req.params
         const evento = await prisma.evento.delete({
             where: {
                 id: Number(id)
@@ -41,7 +71,7 @@ export const deleteEvento = async (req, res) => {
 
 export const updateEvento = async (req, res) => {
     try {
-        const {id} = req.params
+        const { id } = req.params
         const updateEvento = req.body;
         const evento = await prisma.evento.update({
             where: {
@@ -57,13 +87,13 @@ export const updateEvento = async (req, res) => {
 }
 
 
-export const getEventosDisponibles = async(req,res)=>{
+export const getEventosDisponibles = async (req, res) => {
     try {
         const eventos = await prisma.evento.findMany({
-            where : {
-                estadoId : 3
+            where: {
+                estadoId: 3
             },
-            
+
         })
         res.json(eventos)
     } catch (error) {

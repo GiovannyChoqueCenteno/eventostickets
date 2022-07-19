@@ -8,11 +8,11 @@ const transporter = nodemailer.createTransport({
     }
 })
 
-export const mandarEmail =(email, attachments )=> {
+export const mandarEmail = (email, attachments) => {
     transporter.sendMail({
         from: process.env.SERVER_EMAIL,
         to: email,
         subject: `Entradas del evento`,
-        attachments 
+        attachments
     })
 }

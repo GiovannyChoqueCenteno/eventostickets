@@ -3,14 +3,11 @@ import pdf from 'html-pdf'
 
 
 
-export const generarQR = async (detalle , index) => {
+export const generarQR = async (detalle, index) => {
     //console.log("Intente crear el qr")
-    const qrData = await qrcode.toDataURL(`
-    Evento :  ${detalle.espacio.sector.lugar.evento.titulo}
-    Lugar : ${detalle.espacio.sector.lugar.direccion}
-    Sector :  ${detalle.espacio.sector.nombre}
-    Espacio : ${detalle.espacio.descripcion}
-    `)
+
+
+    const qrData = await qrcode.toDataURL(`${detalle.entradas[index].codigo}`, { width: 60 })
     const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -22,31 +19,32 @@ export const generarQR = async (detalle , index) => {
             body {
                 text-align: center;
             }
-    
-            p {
+            small{
                 display: block;
-                font: 400;
             }
-    
             span {
                 font-weight: 700;
+            }
+            h4 {
+                padding: 0;
+                margin: 10px;
             }
         </style>
     </head>
     
     <body>
-        <h1>Entrada para evento </h1>
-        <p><span>Evento : </span> ${detalle.espacio.sector.lugar.evento.titulo}</p>
-        <p><span>Lugar : </span>${detalle.espacio.sector.lugar.direccion}</p>
-        <p><span>Sector : </span> ${detalle.espacio.sector.nombre}</p>
-        <p><span>Espacio : </span>${detalle.espacio.descripcion}</p>
+        <h4>Entrada para evento </h4>
+        <small><span>Evento  :</span>${detalle.espacio.sector.lugar.evento.titulo}</small>
+        <small><span>Lugar   :</span>${detalle.espacio.sector.lugar.direccion}</small>
+        <small><span>Sector  :</span>${detalle.espacio.sector.nombre}</small>
+        <small><span>Espacio :</span>${detalle.espacio.descripcion}</small>
         <img src=${qrData} />
     </body>
     
     </html>
   `
     console.log("intentando crear")
-    pdf.create(htmlContent).toFile(`./pdf/${detalle.id}${index}.pdf`, function (err, res) {
+    pdf.create(htmlContent, { height: "150px", width: "250px", }).toFile(`./pdf/${detalle.id}${index}.pdf`, function (err, res) {
         if (err) {
             console.log(err);
         } else {
