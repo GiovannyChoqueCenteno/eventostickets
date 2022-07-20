@@ -1,0 +1,19 @@
+body {
+    background-color: #D9D8DA;
+    color:white;
+}
+
+.icon-menu {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color:black;
+    cursor: pointer;
+}
+.icon-perfil {
+    position: absolute;
+    top: 20px;
+    right: 50px;
+    color:black;
+    cursor: pointer;
+}

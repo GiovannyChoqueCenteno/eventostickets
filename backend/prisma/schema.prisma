@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Categoria {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar()
+  descripcion String   @db.Text
+  evento      Evento[]
+}
+
+model Estado {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar()
+  descripcion String   @db.Text
+  eventos     Evento[]
+}
+
+model Foto {
+  id       Int    @id @default(autoincrement())
+  fileName String
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  eventoId Int
+}
+
+model Usuario {
+  id        Int               @id @default(autoincrement())
+  nombre    String            @db.VarChar()
+  email     String            @db.VarChar()
+  password  String
+  rol       Rol               @relation(fields: [rolId], references: [id])
+  rolId     Int               @default(3)
+  facturas  Factura[]
+  eventos   Evento[]
+  encargado EncargadoEvento[]
+}
+
+model Rol {
+  id          Int       @id @default(autoincrement())
+  descripcion String    @db.VarChar()
+  usuarios    Usuario[]
+}
+
+model Evento {
+  id          Int               @id @default(autoincrement())
+  titulo      String            @db.VarChar()
+  descripcion String            @db.Text
+  categoria   Categoria         @relation(fields: [categoriaId], references: [id])
+  categoriaId Int
+  estado      Estado            @relation(fields: [estadoId], references: [id])
+  estadoId    Int
+  admin       Usuario           @relation(fields: [adminId], references: [id])
+  adminId     Int
+  organizador String            @db.VarChar()
+  fotos       Foto[]
+  lugares     Lugar[]
+  encargado   EncargadoEvento[]
+}
+
+model Lugar {
+  id        Int       @id @default(autoincrement())
+  nombre    String    @db.VarChar()
+  direccion String    @db.Text
+  longitud  String
+  latitud   String
+  capacidad Int
+  evento    Evento    @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  eventoId  Int
+  sectores  Sector[]
+  horario   Horario[]
+}
+
+model Horario {
+  id       Int      @id @default(autoincrement())
+  fecha    DateTime
+  duracion Int
+  lugar    Lugar    @relation(fields: [lugarId], references: [id], onDelete: Cascade)
+  lugarId  Int
+}
+
+model Sector {
+  id        Int       @id @default(autoincrement())
+  nombre    String    @db.VarChar()
+  capacidad Int
+  lugar     Lugar     @relation(fields: [lugarId], references: [id], onDelete: Cascade)
+  lugarId   Int
+  espacio   Espacio[]
+}
+
+model Espacio {
+  id             Int              @id @default(autoincrement())
+  nombre         String           @db.VarChar()
+  descripcion    String           @db.Text
+  cantidad       Int
+  capacidad      Int
+  precio         Float
+  disponible     Int
+  sector         Sector           @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+  sectorId       Int
+  detalleFactura DetalleFactura[]
+}
+
+model Entrada {
+  id        Int            @id @default(autoincrement())
+  evento    String
+  sector    String
+  espacio   String
+  detalle   DetalleFactura @relation(fields: [detalleId], references: [id])
+  detalleId Int
+  registro  Registro[]
+}
+
+model Factura {
+  id        Int              @id @default(autoincrement())
+  fecha     DateTime         @default(now())
+  total     Float
+  usuarioId Int
+  usuario   Usuario          @relation(fields: [usuarioId], references: [id])
+  detalles  DetalleFactura[]
+}
+
+model DetalleFactura {
+  id        Int       @id @default(autoincrement())
+  costo     Float
+  cantidad  Int
+  espacio   Espacio   @relation(fields: [espacioId], references: [id])
+  espacioId Int
+  entradas  Entrada[]
+  factura   Factura   @relation(fields: [facturaId], references: [id])
+  facturaId Int
+}
+
+model Registro {
+  id          Int      @id @default(autoincrement())
+  encargado   String
+  fecha       DateTime
+  idlugar       Int
+  entrada     Entrada  @relation(fields: [entradaId], references: [id])
+  entradaId   Int
+  encargadoId Int
+}
+
+model EncargadoEvento {
+  id          Int     @id @default(autoincrement())
+  evento      Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  eventoId    Int
+  encargado   Usuario @relation(fields: [encargadoId], references: [id])
+  encargadoId Int
+}
